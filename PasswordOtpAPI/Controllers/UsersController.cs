@@ -69,6 +69,12 @@ public class UsersController : ControllerBase
         var res = new Apiresponse<object>();
         try
         {
+            var existing = await _user.GetAll();
+            if(existing! == null)
+            {
+                res.Message = "Task already exists";
+                return res;
+            }
             await _user.Add(task);
             res.Message = "task added sucessfully:";
             res.Status = true;
@@ -123,6 +129,27 @@ public class UsersController : ControllerBase
         return res;
         
 
+    }
+
+    [HttpGet("Filter")]
+    public async Task<Apiresponse<List<Data>>> Filter([FromQuery] Queryparameter query)
+    {
+        var res = new Apiresponse<List<Data>>();
+
+        try
+        {
+            var data = await _user.Queryparameter(query);
+            res.Message = "Data filtered successfully";
+            res.Status = true;
+            res.Result = data;
+
+        }
+        catch(Exception e)
+        {
+            res.Message = "Error:" + e.Message;
+            res.Status = false;
+        }
+        return res;
     }
 }
  

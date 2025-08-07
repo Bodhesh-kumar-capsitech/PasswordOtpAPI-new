@@ -2,6 +2,7 @@
 using PasswordOtpAPI.Helpers;
 using PasswordOtpAPI.Models;
 using PasswordOtpAPI.Settings;
+using System.Text.RegularExpressions;
 
 namespace PasswordOtpAPI.Services
 {
@@ -45,6 +46,38 @@ namespace PasswordOtpAPI.Services
         {
             await _data.DeleteOneAsync(u => u.Id == id);
             //return "Item deleted";
+        }
+        public async Task<List<Data>> Queryparameter(Queryparameter query)
+        {
+            //For searching
+            var filterbuilder = Builders<Data>.Filter;
+            var filter = filterbuilder.Empty;
+
+            if(!string.IsNullOrEmpty(query.Search))
+                {
+                var searchfilter = filterbuilder.Or
+                    (
+                    filterbuilder.Regex(u => u.Taskname, new MongoDB.Bson.BsonRegularExpression(query.Search))
+                    );
+                filter &= searchfilter;
+                    
+
+            }
+            
+            //for filter
+            var sortbuilder = Builders<Data>.Sort;
+            var sort = query.SortDir.ToLower() == "desc" ?
+
+                sortbuilder.Descending(query.SortBy) : sortbuilder.Ascending(query.SortBy);
+
+            var skip = (query.Page - 1) * query.PageSize;
+
+            return await _data.Find(filter)
+                .Sort(sort)
+                .Skip(skip)
+                .Limit(query.PageSize)
+                .ToListAsync();
+
         }
     }
 }

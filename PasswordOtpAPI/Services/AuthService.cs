@@ -38,11 +38,14 @@ namespace PasswordOtpAPI.Services
             await _users.InsertOneAsync(user);
         }
 
-        public async Task<string> GenerateOtpAsync(string contact)
+        public async Task<string> GenerateOtpAsync(string email)
         {
-            var user = await GetByContactNumberAsync(contact);
+            var user = await GetByEmailAsync(email);
             if (user == null)
-                throw new Exception("User not found");
+            {
+                return "User does not exists";
+            }
+                
 
             var otp = new Random().Next(100000, 999999).ToString();
             user.OtpCode = otp;

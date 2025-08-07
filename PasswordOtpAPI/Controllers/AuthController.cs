@@ -30,6 +30,12 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _authService.GetAll();
+            if(result == null)
+            {
+                res.Message = "Document is empty:";
+                return res;
+            }
+
             res.Message = "User found successfully";
             res.Status = true;
             res.Result = result;
@@ -81,13 +87,15 @@ public class AuthController : ControllerBase
     public async Task<Apiresponse<string>> Login([FromBody] LoginDto request)
     {
         var res = new Apiresponse<string>();
-        var user = await _authService.GetByEmailAsync(request.Email);
-        if (user == null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
-        {
-            res.Message = "Invalid credenntials:";
-        }
+        
         try
         {
+            var user = await _authService.GetByEmailAsync(request.Email);
+            if (user == null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
+            {
+                res.Message = "Invalid credenntials:";
+                return res;
+            }
             var token = _jwtService.GenerateToken(user.Id!, user.Email);
             res.Message = "Login successful";
             res.Status = true;
@@ -109,7 +117,7 @@ public class AuthController : ControllerBase
         var res = new Apiresponse<string>();
         try
         {
-            var otp = await _authService.GenerateOtpAsync(request.ContactNumber);
+            var otp = await _authService.GenerateOtpAsync(request.Email);
             res.Message = "Otp generated sucessfully:";
             res.Status = true;
             res.Result = otp;
@@ -124,9 +132,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
-    public async Task<Apiresponse<object>> ResetPassword([FromBody] VerifyOtpDto request)
+    public async Task<Apiresponse<User>> ResetPassword([FromBody] VerifyOtpDto request)
     {
-        var res = new Apiresponse<object>();
+        var res = new Apiresponse<User>();
         try
         {
             var success = await _authService.VerifyOtpAsync(request.Email, request.Otp, request.NewPassword);
@@ -134,7 +142,15 @@ public class AuthController : ControllerBase
             {
                 res.Message = "Invalid or expired otp";
                 res.Status = false;
+                return res;
             }
+            if(request.Email == null || request.Otp == null || request.NewPassword == null)
+            {
+                res.Message = "Enter data in the provided field";
+                return res;
+            }
+            
+            
             var user = new User
             {
                 Email = request.Email,
