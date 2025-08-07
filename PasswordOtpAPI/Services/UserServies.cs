@@ -30,17 +30,23 @@ namespace PasswordOtpAPI.Services
             return await _data.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<Data> Add(Data task)
+        public async Task<object> Add(Data task)
         {
-            await _data.InsertOneAsync(task);
+           await _data.InsertOneAsync(task);
             return task;
+       
         }
 
-        public async Task<Data?> Updatetask(string id, Data newdata)
+        public async Task<Data> Updatetask(string id, Data newdata)
         {
-            var task = await _data.ReplaceOneAsync(u => u.Id == id, newdata);
+            var update = Builders<Data>.Update
+                .Set(u => u.Taskname, newdata.Taskname);
+
+            await _data.UpdateOneAsync(d => d.Id == id, update);
+
             return newdata;
         }
+
 
         public async Task Deletetask(string id)
         {

@@ -64,9 +64,9 @@ public class UsersController : ControllerBase
         
     }
     [HttpPost("Add")]
-    public async Task<Apiresponse<object>> Post([FromBody] Data task)
+    public async Task<Apiresponse<Data>> Post([FromBody] Data task)
     {
-        var res = new Apiresponse<object>();
+        var res = new Apiresponse<Data>();
         try
         {
             var existing = await _user.GetAll();
@@ -97,18 +97,18 @@ public class UsersController : ControllerBase
         try
         {
             var update = await _user.Updatetask(id, new Data { Id = id, Taskname = data.newname });
-            res.Message = "Updates sucessfully:";
+            res.Message = "Updated successfully.";
             res.Status = true;
             res.Result = update;
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            res.Message = "Error:" + e.Message;
+            res.Message = "Error: " + e.Message;
             res.Status = false;
         }
         return res;
-        
     }
+
 
     [HttpDelete("{id}")]
     public async Task<Apiresponse<Data>> Delete(string id)

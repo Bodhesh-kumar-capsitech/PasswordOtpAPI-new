@@ -2,9 +2,8 @@
 {
     public class Updateuser
     {
-        public string Id { get; set; } = string.Empty;
+        //public string Id { get; set; } = string.Empty;
         public string newname { get; set; } = string.Empty;
-        public string newdescription { get; set; } = string.Empty;
-        public bool newstatus { get; set; } = false;
+        
     }
 }
