@@ -12,6 +12,12 @@ namespace PasswordOtpAPI.Models
         [BsonElement("Task")]
         public string Taskname { get; set; } = string.Empty;
 
+        [BsonElement("Description")]
+        public string Description { get; set; } = string.Empty;
+
+        [BsonElement("Status")]
+        public bool Status { get; set; }
+
 
     }
 }

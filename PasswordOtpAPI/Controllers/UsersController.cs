@@ -69,10 +69,10 @@ public class UsersController : ControllerBase
         var res = new Apiresponse<Data>();
         try
         {
-            var existing = await _user.GetAll();
-            if(existing! == null)
+            var existing = await _user.GetbyTaskname(task.Taskname);
+            if (existing!=null)
             {
-                res.Message = "Task already exists";
+                res.Message = "Task already exists:";
                 return res;
             }
             await _user.Add(task);
@@ -96,7 +96,14 @@ public class UsersController : ControllerBase
         var res = new Apiresponse<Data>();
         try
         {
-            var update = await _user.Updatetask(id, new Data { Id = id, Taskname = data.newname });
+            var existingname = await _user.GetbyTaskname(data.newname);
+            //var existingstatus = await _user.Getbystatus(data.newstatus);
+            if (existingname!= null)
+            {
+                res.Message = "Here data is already same no need to update:";
+                return res;
+            }
+            var update = await _user.Updatetask(id, new Data { Id = id, Taskname = data.newname , Description = data.newdescription , Status = data.newstatus });
             res.Message = "Updated successfully.";
             res.Status = true;
             res.Result = update;
@@ -108,6 +115,7 @@ public class UsersController : ControllerBase
         }
         return res;
     }
+
 
 
     [HttpDelete("{id}")]

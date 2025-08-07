@@ -29,23 +29,36 @@ namespace PasswordOtpAPI.Services
         {
             return await _data.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
+        public async Task<Data> GetbyTaskname(string name)
+        {
+            return await _data.Find(u => u.Taskname == name).FirstOrDefaultAsync();
+        }
+        //public async Task<Data> Getbystatus(bool status)
+        //{
+        //    return await _data.Find(u => u.Status == status).FirstOrDefaultAsync();
+        //}
 
-        public async Task<object> Add(Data task)
+        public async Task Add(Data task)
         {
            await _data.InsertOneAsync(task);
-            return task;
-       
+           
         }
 
         public async Task<Data> Updatetask(string id, Data newdata)
         {
-            var update = Builders<Data>.Update
-                .Set(u => u.Taskname, newdata.Taskname);
+            // Make sure to assign the correct Id to the new data object
+            newdata.Id = id;
 
-            await _data.UpdateOneAsync(d => d.Id == id, update);
+            var result = await _data.ReplaceOneAsync(d => d.Id == id, newdata);
+
+            if (result.MatchedCount == 0)
+            {
+                throw new Exception("No document found with the given ID.");
+            }
 
             return newdata;
         }
+
 
 
         public async Task Deletetask(string id)
