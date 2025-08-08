@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using PasswordOtpAPI.DTOs;
+using PasswordOtpAPI.Helpers;
 using PasswordOtpAPI.Models;
 using PasswordOtpAPI.Services;
 using PasswordOtpAPI.Settings;
-using PasswordOtpAPI.DTOs;
-using PasswordOtpAPI.Helpers;
+using System.Security.Claims;
 
 namespace PasswordOtpAPI.Controllers;
 
@@ -18,7 +19,7 @@ public class UsersController : ControllerBase
 
     private string Getuseridfromjwt()
     {
-        return User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     }
     public UsersController(UserServices user)
     {
@@ -74,6 +75,7 @@ public class UsersController : ControllerBase
         var res = new Apiresponse<Data>();
         var userId = Getuseridfromjwt();
 
+
         try
         {
             var existing = await _user.GetbyTaskname(task.Taskname,userId);
@@ -82,7 +84,8 @@ public class UsersController : ControllerBase
                 res.Message = "Task already exists:";
                 return res;
             }
-            await _user.Add(task,userId);
+            task.CreatedBy = userId;
+            await _user.Add(task);
             res.Message = "task added sucessfully:";
             res.Status = true;
             res.Result = task;
@@ -104,15 +107,15 @@ public class UsersController : ControllerBase
         var userId = Getuseridfromjwt();
         try
         {
-            var existingname = await _user.GetbyTaskname(data.newname,userId);
+            //var existingname = await _user.GetbyTaskname(data.newname,userId);
 
             //var existingstatus = await _user.Getbystatus(data.newstatus);
-            if (existingname!= null)
-            {
-                res.Message = "Here data is already same no need to update:";
-                return res;
-            }
-            var update = await _user.Updatetask(id, userId, new Data { Id = id, Taskname = data.newname , Description = data.newdescription , Status = data.newstatus });
+            //if (existingname!= null)
+            //{
+            //    res.Message = "Here data is already same no need to update:";
+            //    return res;
+            //}
+            var update = await _user.Updatetask(id, userId, new Data {Id = id, Taskname = data.newname , Description = data.newdescription , Status = data.newstatus, CreatedBy = userId });
             res.Message = "Updated successfully.";
             res.Status = true;
             res.Result = update;
@@ -134,6 +137,13 @@ public class UsersController : ControllerBase
         var res = new Apiresponse<Data>();
         try
         {
+            var existing = await _user.GetById(id,userid);
+            if(existing == null)
+            {
+                res.Message = "Not in db for currentuser";
+                res.Status = false;
+                return res;
+            }
             await _user.Deletetask( id ,userid );
             res.Message = "Deleted successfully:";
             res.Status = true;

@@ -23,7 +23,24 @@ namespace PasswordOtpAPI.Models
 
         [BsonElement("otpExpiryTime")]
         public DateTime? OtpExpiryTime { get; set; } = DateTime.UtcNow.AddMinutes(10);
+
+        [BsonElement("Refreshtoken")]
+        public string Refreshtoken { get; set; } = string.Empty;
+
+        [BsonElement("Refreshexpiretoken")]
+        public DateTime? RefreshTokenExpiryTime { get; set; }
     }
+}
+
+public class Tokenresponse
+{
+    public string Token { get; set; } = string.Empty;
+    public string Refreshtoken { get; set; } = string.Empty;
+}
+
+public class TokenRequest
+{
+    public string RefreshToken { get; set; } = string.Empty;
 }
 
 public class Apiresponse<T>

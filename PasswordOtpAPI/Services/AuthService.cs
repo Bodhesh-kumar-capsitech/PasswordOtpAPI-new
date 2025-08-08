@@ -38,6 +38,11 @@ namespace PasswordOtpAPI.Services
             await _users.InsertOneAsync(user);
         }
 
+        public async Task<object> Updateuserdata(string id, User user)
+        {
+            return  await _users.ReplaceOneAsync(u => u.Id == id, user);
+        }
+
         public async Task<string> GenerateOtpAsync(string email)
         {
             var user = await GetByEmailAsync(email);
@@ -77,7 +82,17 @@ namespace PasswordOtpAPI.Services
             await _users.UpdateOneAsync(u => u.Id == user.Id, update);
             return true;
         }
-         
+         public async Task<User> Getbyrefreshtoken(string refreshtoken)
+        {
+            return await _users.Find(u => u.Refreshtoken == refreshtoken).FirstOrDefaultAsync();
+        }
+
+        public async Task Updaterefreshtoken(string userid,string refreshtoken,DateTime expiretime)
+        {
+            var update = Builders<User>.Update
+                .Set(u => u.Refreshtoken, refreshtoken)
+                .Set(u => u.RefreshTokenExpiryTime, expiretime);
+        }
         public async Task<List<User>> Getfilterbyquery(Queryparameter query)
         {
             //logic for searching

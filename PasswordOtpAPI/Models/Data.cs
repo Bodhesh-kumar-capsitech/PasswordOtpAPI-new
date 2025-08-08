@@ -19,6 +19,6 @@ namespace PasswordOtpAPI.Models
         public bool Status { get; set; }
 
         [BsonElement("userId")]
-        public string? CreatedBy { get; set; } 
+        public string? CreatedBy { get; set; }
     }
 }

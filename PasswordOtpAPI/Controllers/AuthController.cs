@@ -84,9 +84,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<Apiresponse<string>> Login([FromBody] LoginDto request)
+    public async Task<Apiresponse<User>> Login([FromBody] LoginDto request)
     {
-        var res = new Apiresponse<string>();
+        var res = new Apiresponse<User>();
         
         try
         {
@@ -97,9 +97,28 @@ public class AuthController : ControllerBase
                 return res;
             }
             var token = _jwtService.GenerateToken(user.Id, user.Email);
+            var refreshtoken = _jwtService.Generaterefreshtoken();
+
+            var user1 = new User
+            {
+
+                Id = user.Id,
+                Email = user.Email,
+                PasswordHash = user.PasswordHash,
+                ContactNumber = user.ContactNumber,
+                OtpCode = user.OtpCode,
+                OtpExpiryTime = DateTime.UtcNow.AddDays(7),
+
+                Refreshtoken = refreshtoken,
+                RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7),
+
+
+            };
+            var newuser = await _authService.Updateuserdata(user.Id, user1);
+            
             res.Message = "Login successful";
             res.Status = true;
-            res.Result = token;
+            res.Result = user1;
         }
         catch(Exception e)
         {
@@ -110,6 +129,46 @@ public class AuthController : ControllerBase
 
        
     }
+
+    [HttpPost("refresh-token")]
+    public async Task<Apiresponse<Tokenresponse>> RefreshToken([FromBody] TokenRequest tokenRequest)
+    {
+        var res = new Apiresponse<Tokenresponse>();
+
+        if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.RefreshToken))
+        {
+            res.Message = "Invalid request";
+            res.Status = false;
+            return res;
+        }
+
+        var user = await _authService.Getbyrefreshtoken(tokenRequest.RefreshToken);
+        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        {
+            res.Message = "Invalid or expired refresh token";
+            res.Status = false;
+            return res;
+        }
+
+        var newAccessToken = _jwtService.GenerateToken(user.Id, user.Email);
+        var newRefreshToken = _jwtService.Generaterefreshtoken();
+
+        user.Refreshtoken = newRefreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+        await _authService.Updaterefreshtoken(user.Id, user.Refreshtoken, DateTime.UtcNow.AddDays(7));
+
+        res.Result = new Tokenresponse
+        {
+            Token = newAccessToken,
+            Refreshtoken = newRefreshToken
+        };
+        res.Message = "Token refreshed successfully";
+        res.Status = true;
+
+        return res;
+    }
+
 
     [HttpPost("generate-otp")]
     public async Task<Apiresponse<string>> GenerateOtp([FromBody] OtpRequestDto request)
