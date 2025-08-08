@@ -8,5 +8,7 @@
         public string newdescription { get; set; } = string.Empty;
 
         public bool newstatus { get; set; } = false;
+
+        //public string newuserid { get; set; } = string.Empty;
     }
 }

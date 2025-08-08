@@ -96,7 +96,7 @@ public class AuthController : ControllerBase
                 res.Message = "Invalid credenntials:";
                 return res;
             }
-            var token = _jwtService.GenerateToken(user.Id!, user.Email);
+            var token = _jwtService.GenerateToken(user.Id, user.Email);
             res.Message = "Login successful";
             res.Status = true;
             res.Result = token;
