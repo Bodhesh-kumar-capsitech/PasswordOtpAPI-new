@@ -24,6 +24,9 @@ namespace PasswordOtpAPI.Models
         [BsonElement("otpExpiryTime")]
         public DateTime? OtpExpiryTime { get; set; } = DateTime.UtcNow.AddMinutes(10);
 
+        [BsonElement("token")]
+        public string Token { get; set; } = string.Empty;
+
         [BsonElement("Refreshtoken")]
         public string Refreshtoken { get; set; } = string.Empty;
 

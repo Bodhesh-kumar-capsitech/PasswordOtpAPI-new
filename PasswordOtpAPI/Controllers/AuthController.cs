@@ -108,7 +108,7 @@ public class AuthController : ControllerBase
                 ContactNumber = user.ContactNumber,
                 OtpCode = user.OtpCode,
                 OtpExpiryTime = DateTime.UtcNow.AddDays(7),
-
+                Token = token,
                 Refreshtoken = refreshtoken,
                 RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7),
 
@@ -117,6 +117,7 @@ public class AuthController : ControllerBase
             var newuser = await _authService.Updateuserdata(user.Id, user1);
             
             res.Message = "Login successful";
+
             res.Status = true;
             res.Result = user1;
         }
@@ -131,42 +132,59 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh-token")]
-    public async Task<Apiresponse<Tokenresponse>> RefreshToken([FromBody] TokenRequest tokenRequest)
+    public async Task<Apiresponse<User>> RefreshToken([FromBody] TokenRequest tokenRequest)
     {
-        var res = new Apiresponse<Tokenresponse>();
+        var res = new Apiresponse<User>();
 
-        if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.RefreshToken))
+        try
         {
-            res.Message = "Invalid request";
-            res.Status = false;
+            if (tokenRequest == null || string.IsNullOrEmpty(tokenRequest.RefreshToken))
+            {
+                res.Message = "Invalid request";
+                res.Status = false;
+                return res;
+            }
+
+            var user = await _authService.Getbyrefreshtoken(tokenRequest.RefreshToken);
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                res.Message = "Invalid or expired refresh token";
+                res.Status = false;
+                return res;
+            }
+
+            var newAccessToken = _jwtService.GenerateToken(user.Id, user.Email);
+            var newRefreshToken = _jwtService.Generaterefreshtoken();
+
+            await _authService.Updaterefreshtoken(user.Id, user.Refreshtoken, DateTime.UtcNow.AddDays(7));
+
+            var user1 = new User
+            {
+
+                Id = user.Id,
+                Email = user.Email,
+                PasswordHash = user.PasswordHash,
+                ContactNumber = user.ContactNumber,
+                OtpCode = user.OtpCode,
+                OtpExpiryTime = DateTime.UtcNow.AddDays(7),
+                Token = newAccessToken,
+                Refreshtoken = newRefreshToken,
+                RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7),
+            };
+            var newuser = await _authService.Updateuserdata(user.Id, user1);
+            res.Result = user1;
+            res.Message = "Token refreshed successfully";
+            res.Status = true;
             return res;
         }
-
-        var user = await _authService.Getbyrefreshtoken(tokenRequest.RefreshToken);
-        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        catch(Exception e)
         {
-            res.Message = "Invalid or expired refresh token";
+            res.Message = "Error:" + e.Message;
             res.Status = false;
-            return res;
         }
-
-        var newAccessToken = _jwtService.GenerateToken(user.Id, user.Email);
-        var newRefreshToken = _jwtService.Generaterefreshtoken();
-
-        user.Refreshtoken = newRefreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-
-        await _authService.Updaterefreshtoken(user.Id, user.Refreshtoken, DateTime.UtcNow.AddDays(7));
-
-        res.Result = new Tokenresponse
-        {
-            Token = newAccessToken,
-            Refreshtoken = newRefreshToken
-        };
-        res.Message = "Token refreshed successfully";
-        res.Status = true;
-
         return res;
+
+       
     }
 
 
@@ -227,8 +245,7 @@ public class AuthController : ControllerBase
         {
             res.Message = "Error:" + e.Message;
             res.Status = false;
-             
-
+            
         }
         return res;
       
