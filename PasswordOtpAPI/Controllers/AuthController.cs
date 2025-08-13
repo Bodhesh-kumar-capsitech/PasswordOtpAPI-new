@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
+﻿using Microsoft.AspNetCore.Mvc;
 using PasswordOtpAPI.DTOs;
 using PasswordOtpAPI.Helpers;
 using PasswordOtpAPI.Models;
@@ -52,8 +48,6 @@ public class AuthController : ControllerBase
     public async Task<Apiresponse<object>> Register([FromBody] RegisterDto request)
     {
         var res = new Apiresponse<object>();
-        
-
         try
         {
             var existing = await _authService.GetByEmailAsync(request.Email);

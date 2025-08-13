@@ -3,6 +3,7 @@ using PasswordOtpAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using PasswordOtpAPI.Hubs;
 
 
 
@@ -12,9 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<UserServices>();
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton<Messageservice>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
 
@@ -58,4 +61,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("chatHub");
 app.Run();
